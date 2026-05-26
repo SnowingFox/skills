@@ -1,0 +1,19 @@
+把这些改动提交到 feat/enrich-skills 去
+
+---
+
+Delegates to `entire dispatch --local` when available. 什么意思？这玩意不是 SKILL 纯流程吗？
+
+---
+
+/grill-me 不不不，不能这么写，我不需要这个命令，我们 SKILL 目的就是为了把 CLI 的 command 摘出来，依赖其他命令而非单独这个命令
+
+---
+
+你可以看看 ~/dev/story/submodule/skills
+
+---
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
