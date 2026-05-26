@@ -1,0 +1,22 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "fd8f8a6fa2ef",
+  "strategy": "manual-commit",
+  "branch": "enrich-skills",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "README.md",
+    "skills/dispatch/SKILL.md",
+    "skills/review/SKILL.md",
+    "skills/review/references/review-rules.md",
+    "skills/using-entire/SKILL.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/fd/8f8a6fa2ef/0/metadata.json",
+      "transcript": "/fd/8f8a6fa2ef/0/full.jsonl",
+      "content_hash": "/fd/8f8a6fa2ef/0/content_hash.txt",
+      "prompt": "/fd/8f8a6fa2ef/0/prompt.txt"
+    }
+  ]
+}

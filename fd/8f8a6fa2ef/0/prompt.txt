@@ -1,0 +1,15 @@
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+---
+
+坏了，搞错了，origin 应该是这个：https://github.com/SnowingFox/skills.git
+
+到时候你帮我改改，我忘记 fork 了，刚刚才 fork 上，记得别弄坏 commit 记录
+
+---
+
+commit 一下吧，新增一个 enrich skills 分支，然后帮我把 PULL REQUEST 也写一下用英文（输出到聊天框）
+
+再加一个 Discord，告诉他们 team 我做了什么（简洁但能概括），以及 using-entire 这个 SKILL 参考了 using-superpowers 这个 SKILL 的思想，适合用于探索的场景，非常方便！
