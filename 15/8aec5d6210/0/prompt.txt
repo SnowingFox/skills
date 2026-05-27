@@ -1,0 +1,10 @@
+machine-readable
+  reference for the full Entire platform 换成 ai friendly 什么什么的， 你可以搜搜 llms.txt 是什么标准
+
+---
+
+Execute the selected diff-tab commit-and-push action.
+
+---
+
+Execute the selected diff-tab commit-and-push action.
