@@ -1,0 +1,53 @@
+discrod msg 是之前那种风格吧，现在的太死板了
+
+---
+
+礼貌询问一下是否符合你们的工作预期，或者我们可以讨论看看？
+
+---
+
+/using-entire 也可以这样的
+
+比如
+
+/using-entire 探索一下这个仓库
+/using-entire 这里 auth 应该是用 X，为什么之前是用 Y？
+/using-entire 探索实现一下这个功能，输出一个 plan
+
+---
+
+我是说 discord
+
+---
+
+或者你觉得有更好的例子吗？更有说服力的例子
+
+---
+
+我指的是能够分发，需要多个 skill 同时来的时候，比如探索这个代码仓库，实现 plan。最后 review 等等，举例一下
+
+---
+
+带上 /using-entire 前缀，然后 prompt 可以再现实世界一点，真人一点
+
+---
+
+加上一个适合探索任务
+
+---
+
+我是说对 using-entire 的形容
+
+---
+
+revert 我的提交，然后重新 push -f 一下，我居然是用 liumengjie.ai 提交，我觉得得用 snowingfox。我已经更新了，你来搞吧
+
+---
+
+revert 我的提交，然后重新 push -f 一下，我居然是用 liumengjie.ai 提交，我觉得得用 snowingfox。我已经更新了，你来搞吧
+
+---
+
+using-entire 的中文是不是可以删掉？以及想知道更多可以参考 docs.entire.io/llms.txt 和 运行 entire help
+
+这些都是 reference

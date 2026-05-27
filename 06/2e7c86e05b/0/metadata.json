@@ -1,0 +1,41 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "062e7c86e05b",
+  "session_id": "a3ff006f-8e66-4e79-9be7-d2951da05445",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-27T05:59:18.438141Z",
+  "branch": "feat/enrich-skills",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "skills/using-entire/SKILL.md"
+  ],
+  "agent": "Cursor",
+  "model": "gpt-5.5-extra-high",
+  "turn_id": "2c751f5be1fa",
+  "checkpoint_transcript_start": 78,
+  "transcript_lines_at_start": 78,
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-27T05:59:18.426602Z",
+    "agent_lines": 18,
+    "agent_removed": 9,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 18,
+    "total_lines_changed": 27,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
