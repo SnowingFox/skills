@@ -1,0 +1,13 @@
+为什么没更新呢？
+
+---
+
+我是说 commits
+
+---
+
+我是说刚刚提交的 commit 没有显示，可以用gh cli 看看 https://github.com/entireio/skills/pull/28？
+
+---
+
+移除 dispatch，并且更新 using-entire 里面的 dispatch
