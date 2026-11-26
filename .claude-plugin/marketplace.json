@@ -1,0 +1,20 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "snowingfox-skills",
+  "description": "snowingfox's agent skills",
+  "owner": {
+    "name": "snowingfox"
+  },
+  "plugins": [
+    {
+      "name": "snowingfox",
+      "description": "snowingfox's agent skills. orca-search: Google web and news search through the Orca app's built-in browser, with an MCP server.",
+      "version": "0.1.0",
+      "source": "./",
+      "category": "productivity",
+      "author": {
+        "name": "snowingfox"
+      }
+    }
+  ]
+}
