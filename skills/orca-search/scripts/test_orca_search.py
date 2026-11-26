@@ -1,4 +1,7 @@
 """Tests for orca_search.py (no network, no Orca: subprocess is faked). Run: python3 test_orca_search.py"""
+import argparse
+import contextlib
+import io
 import json
 import os
 import sys
@@ -207,6 +210,30 @@ def test_read_refuses_non_http_urls():
             assert e.code == 2
         else:
             raise AssertionError(f"accepted {u}")
+
+
+def test_no_daily_cap_unless_one_is_set():
+    """Searches are unlimited by default; ORCA_SEARCH_DAILY_CAP > 0 refuses past that count; a captcha block still refuses."""
+    saved = m.COUNT, m.CAP, m.run_search
+    with tempfile.TemporaryDirectory() as d:
+        try:
+            m.COUNT = os.path.join(d, "c.count")
+            m.run_search = lambda q, *a, **k: {"query": q, "news": False, "when": None, "blocked": False, "ai_overview": None,
+                                               "page": "p0", "page_url": "https://www.google.com/search?q=" + q,
+                                               "results": [{"title": "t", "source": "s", "age": "", "snippet": "", "url": "https://e.com", "link": "https://e.com"}]}
+            a = argparse.Namespace(query="x", n=10, news=False, when=None, ai=False, resolve_all=False, open=None, json=True, max_chars=100)
+            m.write_count(5000, False, m.COUNT)
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                m.CAP = 0
+                assert m._search(a) == 0
+                assert m.read_count(m.COUNT)[1] == 5001
+                m.CAP = 40
+                assert m._search(a) == 3
+                m.CAP = 0
+                m.write_count(1, True, m.COUNT)
+                assert m._search(a) == 3
+        finally:
+            m.COUNT, m.CAP, m.run_search = saved
 
 
 if __name__ == "__main__":

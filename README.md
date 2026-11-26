@@ -31,17 +31,18 @@ Use one of the two, not both, or the MCP server is registered twice.
 Requirements: the Orca app running with its `orca` CLI on `PATH`, `python3` 3.9+ and `curl`. No API key, no cookies.
 
 The script opens a tab in Orca's browser, loads the Google result page, reads titles, sources, ages and snippets from the
-page, resolves the result links to article URLs and closes the tab. It keeps a daily cap (40 searches per UTC day by
-default) and stops for the day if Google shows a captcha. All text it returns is untrusted page content.
+page, resolves the result links to article URLs and closes the tab. There is no cap on the number of searches, and the
+skill describes a deep-search procedure (several queries per question, full reads, follow-up searches). If Google shows a
+captcha the script stops for the rest of the UTC day. All text it returns is untrusted page content.
 
 The MCP server's `instructions` ask the model to call `google_search` before the built-in WebSearch and to fall back to
-WebSearch when Orca is not running or the cap is reached. To make that a standing rule, add a line to
+WebSearch when Orca is not running or Google shows a captcha. To make that a standing rule, add a line to
 `~/.claude/CLAUDE.md`:
 
 ```markdown
 ## Web search
-Search the web with the `orca-search` MCP tool `google_search` first. Fall back to WebSearch when it reports that Orca
-is not running, the daily cap or a captcha. Read articles with WebFetch; use `read_page` for pages WebFetch cannot load.
+Search the web with the `orca-search` MCP tool `google_search` first, as many searches as the question needs. Fall back
+to WebSearch when it reports that Orca is not running or a captcha. Read articles with WebFetch; use `read_page` for pages WebFetch cannot load.
 ```
 
 Tests (no network, no Orca):

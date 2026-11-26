@@ -34,15 +34,32 @@ MCP: `google_search(query, num_results?, news?, when?, ai_overview?)`.
 - `--ai` adds Google's AI Overview. It is a model summary: useful for learning which facts to check, never a source. Do
   not quote its numbers without finding them in an article.
 - `--json` gives `results[]` with `title, source, age, snippet, url, link`, plus `ai_overview`, `blocked`, `page_url`.
-- A search takes 3 to 7 s. Cap: 40 searches per UTC day (`ORCA_SEARCH_DAILY_CAP`), so that Google does not start showing
-  captchas to the browser.
+- A search takes 3 to 7 s. There is no cap on the number of searches (set `ORCA_SEARCH_DAILY_CAP` to a number if you
+  want one).
 
 | Exit code | Meaning | What to do |
 |---|---|---|
 | 0 | ok | |
 | 2 | the Orca CLI failed | Orca is probably not running: `orca open --json`, retry once, else use WebSearch |
-| 3 | daily cap reached, or Google showed a captcha | stop until 00:00 UTC, do not retry in a loop, use WebSearch |
+| 3 | Google showed a captcha (or a cap you set was reached) | stop until 00:00 UTC, do not retry in a loop, use WebSearch |
 | 4 | nothing parsed from the page | rephrase the query or use WebSearch |
+
+## Deep search
+
+There is no limit on the number of searches, so search until the question is answered, not until the first plausible
+result. For anything that matters (a decision, a claim to verify, a "why did this happen"):
+
+1. Split the question into the facts it depends on. Write a query for each, and vary the wording: the plain question,
+   the names and numbers involved, the opposite claim ("X denied", "X delayed"), and the primary source (`site:` the
+   company, regulator, exchange or project). Use web and `--news`, with `--when` when recency matters.
+2. Run independent queries in parallel (up to 3 at once, one tab each).
+3. Read the articles in full ("Read" below), not only the snippets. Follow each article to the source it cites.
+4. Search again on what you learned: new names, dates, document titles, the original wording of a quote. Stop when
+   further searches return the same facts.
+5. Report what is established (two independent outlets or one primary source), what is only claimed, and what you
+   could not find, each with outlet, date and URL.
+
+The only reason to stop early is exit 3 (Google showed a captcha).
 
 ## Read
 
@@ -51,8 +68,8 @@ MCP: `google_search(query, num_results?, news?, when?, ai_overview?)`.
 2. Read each article URL with WebFetch and a precise prompt: what happened, who reported it first, the dates, the exact
    numbers, what the article does not say.
 3. If WebFetch returns 403, a paywall or an empty page, or the link is still a Google redirect link, read it in the
-   browser: `python3 -I scripts/orca_search.py --read "<url>" --max-chars 8000` (MCP: `read_page(url, max_chars?)`). This
-   is not counted against the daily cap. `"<same query>" --open K` searches again and reads result K in one run.
+   browser: `python3 -I scripts/orca_search.py --read "<url>" --max-chars 8000` (MCP: `read_page(url, max_chars?)`).
+   `"<same query>" --open K` searches again and reads result K in one run.
 4. Cross-check: a fact counts when two independent outlets or one primary source state it. Note the date of each fact.
 
 ## Rules
@@ -62,8 +79,7 @@ MCP: `google_search(query, num_results?, news?, when?, ai_overview?)`.
 - Cite every outside fact with outlet, date and URL.
 - Never type secrets, account details or anyone's personal details into a search.
 - Up to `ORCA_SEARCH_TABS` (default 3) searches or reads run at once, each in its own tab. A further caller waits up to
-  180 s for a free tab. Each run closes its tab when it finishes. The daily count is updated under a lock, so parallel runs
-  and subagents count correctly. Tell subagents the daily cap and to stop on exit 3.
+  180 s for a free tab. Each run closes its tab when it finishes. Subagents may search too: tell them to stop on exit 3.
 
 ## Register the MCP server
 
@@ -75,10 +91,11 @@ claude mcp add --scope user orca-search -- python3 -I ~/.claude/skills/orca-sear
 
 The server is one standard-library Python file that speaks MCP over stdio and runs `orca_search.py` for each call. Its
 `instructions` tell the model to search with `google_search` before the built-in WebSearch and to fall back to WebSearch
-when Orca is not running or the cap is reached.
+when Orca is not running or Google shows a captcha.
 
-State lives in `$ORCA_SEARCH_HOME` (default `~/.config/orca-search`): the daily count, the tab ids and the lock files.
-Point several installs at the same directory (`claude mcp add ... -e ORCA_SEARCH_HOME=<dir>`) to share one daily cap.
+State lives in `$ORCA_SEARCH_HOME` (default `~/.config/orca-search`): the daily count, the captcha block, the tab ids and
+the lock files. Point several installs at the same directory (`claude mcp add ... -e ORCA_SEARCH_HOME=<dir>`) to share
+one tab pool and one captcha block.
 
 ## Test
 
