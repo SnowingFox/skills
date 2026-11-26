@@ -101,10 +101,10 @@ def test_page_id_reuses_saved_tab_or_creates():
 def test_count_resets_each_day():
     with tempfile.TemporaryDirectory() as d:
         c = os.path.join(d, "c")
-        json.dump({"date": "2000-01-01", "n": 99, "blocked": True}, open(c, "w"))
-        assert m.read_count(c)[1:] == (0, False)
+        json.dump({"date": "2000-01-01", "n": 99, "captcha_at": "2000-01-01T05:00:00Z"}, open(c, "w"))
+        assert m.read_count(c)[1:] == (0, None)
         m.write_count(3, False, c)
-        assert m.read_count(c)[1:] == (3, False)
+        assert m.read_count(c)[1:] == (3, None)
         assert oct(os.stat(c).st_mode & 0o777) == "0o600"
 
 
@@ -131,12 +131,62 @@ def test_run_search_marks_blocked_page():
     assert res["blocked"] is True and res["results"] == []
 
 
-def test_block_is_sticky_for_the_day():
+def test_captcha_time_is_kept_as_information_only():
     with tempfile.TemporaryDirectory() as d:
         c = os.path.join(d, "c")
         m.write_count(1, True, c)
+        at = m.read_count(c)[2]
+        assert at and at.endswith("Z")
         m.write_count(2, False, c)
-        assert m.read_count(c)[1:] == (2, True)
+        assert m.read_count(c) == (m.today(), 2, at)
+
+
+def test_fallback_url():
+    assert m.fallback_url("btc etf") == "https://duckduckgo.com/?q=btc+etf&ia=web"
+    u = m.fallback_url("btc etf", news=True, when="h")
+    assert "ia=news" in u and "iar=news" in u and "df=d" in u
+
+
+def test_fallback_search_parses_results_or_hands_over_the_page_text():
+    page = {"url": "https://duckduckgo.com/?q=x", "results": [{"title": "T", "url": "https://e.com/a", "source": "e.com", "snippet": "S"}, {"title": "", "url": "https://e.com/b"}]}
+    run = fake([("goto", ok({})), ("wait", ok({})), ("eval", ok({"result": json.dumps(page)}))])
+    r = m.fallback_search("p0", "x", run=run)
+    assert r["results"] == [{"title": "T", "source": "e.com", "age": "", "snippet": "S", "url": "https://e.com/a", "link": "https://e.com/a"}] and r["content"] == ""
+    run = fake([("goto", ok({})), ("wait", ok({})), ("eval", ok({"result": json.dumps({"url": "u", "results": []})})), ("read", ok({"content": "page text"}))])
+    assert m.fallback_search("p0", "x", run=run) == {"url": "u", "results": [], "content": "page text"}
+
+
+def test_captcha_falls_back_to_duckduckgo_and_blocks_nothing():
+    """A Google captcha costs one call: the query goes to DuckDuckGo in the same tab, exit 0, and the next search runs."""
+    saved = m.COUNT, m.CAP, m.run_search, m.fallback_search
+    with tempfile.TemporaryDirectory() as d:
+        try:
+            m.COUNT, m.CAP = os.path.join(d, "c.count"), 0
+            opened = []
+            blocked = {"query": "x", "news": False, "when": None, "blocked": True, "ai_overview": None, "page": "p0",
+                       "page_url": "https://www.google.com/sorry/index", "results": []}
+            good = {**blocked, "blocked": False, "page_url": "https://www.google.com/search?q=x",
+                    "results": [{"title": "t", "source": "s", "age": "", "snippet": "", "url": "https://e.com", "link": "https://e.com"}]}
+            m.run_search = lambda q, *a, **k: blocked
+            hit = {"title": "Result one", "source": "e.com", "age": "", "snippet": "s", "url": "https://e.com/1", "link": "https://e.com/1"}
+            m.fallback_search = lambda pid, q, news, when, n, max_chars: (opened.append((pid, q)) or {"url": m.fallback_url(q), "results": [hit], "content": ""})
+            a = argparse.Namespace(query="x", n=10, news=False, when=None, ai=False, resolve_all=False, open=None, json=True, max_chars=100)
+            out, err = io.StringIO(), io.StringIO()
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                assert m._search(a) == 0
+            j = json.loads(out.getvalue())
+            assert j["blocked"] is True and j["engine"] == "duckduckgo" and j["results"] == [hit] and j["page_url"].startswith("https://duckduckgo.com/")
+            assert opened == [("p0", "x")]
+            assert m.read_count(m.COUNT)[1] == 1 and m.read_count(m.COUNT)[2]
+            m.run_search = lambda q, *a, **k: good  # the next call is not refused
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                assert m._search(a) == 0
+            m.run_search = lambda q, *a, **k: blocked  # captcha and an empty fallback page: exit 3 for this call
+            m.fallback_search = lambda pid, q, news, when, n, max_chars: {"url": "", "results": [], "content": "  "}
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                assert m._search(a) == 3
+        finally:
+            m.COUNT, m.CAP, m.run_search, m.fallback_search = saved
 
 
 def test_same_query():
@@ -173,7 +223,7 @@ def test_bump_count_adds_under_lock():
     with tempfile.TemporaryDirectory() as d:
         c = os.path.join(d, "c")
         assert m.bump_count(False, c) == 1 and m.bump_count(False, c) == 2
-        assert m.read_count(c)[1:] == (2, False)
+        assert m.read_count(c)[1:] == (2, None)
 
 
 def test_page_id_per_slot_keeps_old_key():
@@ -213,7 +263,7 @@ def test_read_refuses_non_http_urls():
 
 
 def test_no_daily_cap_unless_one_is_set():
-    """Searches are unlimited by default; ORCA_SEARCH_DAILY_CAP > 0 refuses past that count; a captcha block still refuses."""
+    """Searches are unlimited by default; ORCA_SEARCH_DAILY_CAP > 0 refuses past that count; an earlier captcha refuses nothing."""
     saved = m.COUNT, m.CAP, m.run_search
     with tempfile.TemporaryDirectory() as d:
         try:
@@ -231,7 +281,7 @@ def test_no_daily_cap_unless_one_is_set():
                 assert m._search(a) == 3
                 m.CAP = 0
                 m.write_count(1, True, m.COUNT)
-                assert m._search(a) == 3
+                assert m._search(a) == 0
         finally:
             m.COUNT, m.CAP, m.run_search = saved
 

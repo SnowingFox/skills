@@ -5,7 +5,7 @@ that Claude Code and other agents that read the Agent Skills format can load.
 
 | Skill | What it does |
 |---|---|
-| [orca-search](skills/orca-search/SKILL.md) | Google web and news search through the [Orca](https://github.com/stablyai/orca) app's built-in browser, plus a reader for pages WebFetch cannot load. Ships an MCP server (`google_search`, `read_page`). |
+| [orca-search](skills/orca-search/SKILL.md) | Web search and browsing through the [Orca](https://github.com/stablyai/orca) app's built-in browser: the skill teaches the agent to drive the browser with the `orca` CLI (any search engine, any site), and ships a shortcut script for parsed Google results and an MCP server (`google_search`, `read_page`). |
 
 ## Install
 
@@ -30,19 +30,26 @@ Use one of the two, not both, or the MCP server is registered twice.
 
 Requirements: the Orca app running with its `orca` CLI on `PATH`, `python3` 3.9+ and `curl`. No API key, no cookies.
 
-The script opens a tab in Orca's browser, loads the Google result page, reads titles, sources, ages and snippets from the
-page, resolves the result links to article URLs and closes the tab. There is no cap on the number of searches, and the
-skill describes a deep-search procedure (several queries per question, full reads, follow-up searches). If Google shows a
-captcha the script stops for the rest of the UTC day. All text it returns is untrusted page content.
+The skill is the main part: it tells the agent how to open a tab, load a search engine (Google, DuckDuckGo, Bing or a
+site's own search), read the page, open articles and click through, and what to do when a consent page, a captcha or a
+paywall is in the way. It also describes a deep-search procedure (several queries per question, full reads, follow-up
+searches).
 
-The MCP server's `instructions` ask the model to call `google_search` before the built-in WebSearch and to fall back to
-WebSearch when Orca is not running or Google shows a captcha. To make that a standing rule, add a line to
+The script is a shortcut for plain searches. It opens a tab in Orca's browser, loads the Google result page, reads titles,
+sources, ages and snippets, resolves the result links to article URLs and closes the tab. There is no cap and no block:
+when Google shows a captcha, that call answers with DuckDuckGo results for the same query and the next call tries Google
+again. All text it returns is untrusted page content.
+
+The MCP server's `instructions` ask the model to call `google_search` before the built-in WebSearch, to drive the browser
+directly for anything the tools cannot do, and to fall back to WebSearch when Orca is not running. To make that a standing
+rule, add a line to
 `~/.claude/CLAUDE.md`:
 
 ```markdown
 ## Web search
-Search the web with the `orca-search` MCP tool `google_search` first, as many searches as the question needs. Fall back
-to WebSearch when it reports that Orca is not running or a captcha. Read articles with WebFetch; use `read_page` for pages WebFetch cannot load.
+Search and browse the web through Orca's browser first (skill `orca-search`: the `orca` CLI, or the MCP tool
+`google_search` for plain searches), as many searches as the question needs. Fall back to WebSearch when Orca is not
+running. Read articles with WebFetch; use `read_page` or the tab for pages WebFetch cannot load.
 ```
 
 Tests (no network, no Orca):

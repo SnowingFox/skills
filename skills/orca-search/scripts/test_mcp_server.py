@@ -91,7 +91,7 @@ def test_call_runs_the_script_isolated_and_returns_stdout():
 
 def test_failures_carry_the_reason_and_a_fallback():
     r = m.call_tool("google_search", {"query": "x"}, fake(P("", 3, "orca_search: Google answered with a captcha")))
-    assert r["isError"] and "answered with a captcha" in r["content"][0]["text"] and "WebSearch" in r["content"][0]["text"]
+    assert r["isError"] and "answered with a captcha" in r["content"][0]["text"] and "orca CLI" in r["content"][0]["text"] and "not blocked" in r["content"][0]["text"]
     r = m.call_tool("google_search", {"query": "x"}, fake(P("", 2, "orca_search: orca tab: [Errno 2]")))
     assert r["isError"] and "Orca may not be running" in r["content"][0]["text"]
     r = m.call_tool("read_page", {"url": "https://a.b"}, fake(subprocess.TimeoutExpired("x", 300)))
